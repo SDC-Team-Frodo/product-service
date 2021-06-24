@@ -38,6 +38,10 @@ DELIMITER ','
 NULL AS 'null'
 CSV HEADER;
 
+UPDATE styles
+SET sale_price=0
+WHERE sale_price IS NULL;
+
 CREATE TABLE related(
   id SERIAL NOT NULL PRIMARY KEY,
   product_id INTEGER NOT NULL,
