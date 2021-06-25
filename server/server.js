@@ -20,7 +20,7 @@ app.get('/products', (req, res) => {
 
   var start = page * count - count + 1;
   var end = page * count;
-  var sql = `SELECT * FROM products WHERE id >= ${start} AND id <= ${end}`;
+  var sql = `SELECT product_id AS id, name, slogan, description, category, default_price FROM products WHERE product_id >= ${start} AND product_id <= ${end}`;
   pool.query(sql)
     .then(response => {
       res.end(JSON.stringify(response.rows));
@@ -36,7 +36,7 @@ app.get('/products/:product_id', (req, res) => {
   var product = {};
 
   //Multiple Queries
-  var productQuery = `SELECT * FROM products WHERE id=${req.params['product_id']}`;
+  var productQuery = `SELECT product_id AS id, name, slogan, description, category, default_price FROM products WHERE product_id=${req.params['product_id']}`;
   var featureQuery = `SELECT feature, value FROM features WHERE product_id=${req.params['product_id']}`;
   queries.push(pool.query(productQuery)
     .then(response => {
@@ -73,9 +73,12 @@ app.get('/products/:product_id/styles', (req, res) => {
     'product_id': req.params.product_id,
     results: []
   }
-
+  //Probably need optimizing
   var queries = [];
-  var styleQuery = `SELECT id AS style_id, name, original_price, sale_price, default_style AS "default?" FROM styles WHERE product_id=${req.params.product_id}`;
+  var styleQuery = `SELECT style_id, name, original_price, sale_price, default_style AS "default?"
+                    FROM styles
+                    WHERE
+                      product_id=${req.params.product_id}`;
   pool.query(styleQuery)
     .then(response => {
       var queries = [];
@@ -84,7 +87,7 @@ app.get('/products/:product_id/styles', (req, res) => {
       styles.results.forEach(style => {
         var style_id = style.style_id;
         var photoQuery = `SELECT thumbnail_url, url FROM photos WHERE style_id=${style_id}`;
-        var skuQuery = `SELECT id, quantity, size FROM sku WHERE style_id=${style_id}`;
+        var skuQuery = `SELECT sku_id, quantity, size FROM sku WHERE style_id=${style_id}`;
 
         queries.push(pool.query(photoQuery)
           .then(photos => {
@@ -101,7 +104,7 @@ app.get('/products/:product_id/styles', (req, res) => {
           .then(skus => {
             style.skus = {}
             skus.rows.forEach(sku => {
-              style.skus[sku.id] = {
+              style.skus[sku.sku_id] = {
                 quantity: sku.quantity,
                 size: sku.size
               };
@@ -125,7 +128,22 @@ app.get('/products/:product_id/styles', (req, res) => {
 });
 
 app.get('/products/:product_id/related', (req, res) => {
+  var relatedQuery = `SELECT related_product_id FROM related WHERE product_id=${req.params.product_id}`;
+  var related = [];
 
+  pool.query(relatedQuery)
+    .then(response => {
+      response.rows.forEach(relate => {
+        related.push(relate.related_product_id);
+      })
+      res.end(JSON.stringify(related));
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500);
+      res.end();
+      return;
+    });
 });
 
 app.listen(port, () => {
