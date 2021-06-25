@@ -169,7 +169,7 @@ describe('Product service endpoints', function() {
               done();
             });
 
-          })
+          });
         });
     });
 
@@ -231,9 +231,7 @@ describe('Product service endpoints', function() {
               done();
             });
         });
-
     });
-
   });
 
 });
