@@ -74,22 +74,6 @@ describe('Product service endpoints', function() {
     it('should get the corresponding features', function() {
       var id = 5;
 
-      //Features for product_id 5
-      var features = [
-        {
-          feature: 'Material',
-          value: 'FullControlSkin'
-        },
-        {
-          feature: 'Mid-Sole',
-          value: 'ControlSupport Arch Bridge'
-        },
-        {
-          feature: 'Stitching',
-          value: 'Double Stitch'
-        }
-      ];
-
       var containsFeatures = (actual, expected) => {
         if (actual.length !== expected.length) {
           return false;
@@ -113,7 +97,11 @@ describe('Product service endpoints', function() {
         url: `http://localhost:5000/products/${id}`
       })
         .then(response => {
-          expect(containsFeatures(features, response.data.features)).to.be(true);
+          var featureQuery = `SELECT * FROM features WHERE product_id=${id}`;
+          pool.query(featureQuery)
+            .then(features => {
+              expect(containsFeatures(features, response.data.features)).to.be(true);
+            });
           done();
         });
     });
