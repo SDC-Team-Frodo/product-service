@@ -17,30 +17,29 @@ var scenarios = {
     rate: '1000',
     preAllocatedVUs: 1000,
     timeUnit: '1s'
+  },
+  'productDetails': {
+    // name of the executor to use
+    executor: 'constant-arrival-rate',
+
+    // common scenario configuration
+    exec: 'products',
+    startTime: '1s',
+    gracefulStop: '5s',
+    env: { EXAMPLEVAR: 'testing' },
+    tags: { example_tag: 'testing' },
+
+    // executor-specific configuration
+    duration: '15s',
+    rate: '1000',
+    preAllocatedVUs: 1000,
+    timeUnit: '1s'
   }
 };
 
 
 export let options = {
-  scenarios: {
-    'products': {
-      // name of the executor to use
-      executor: 'constant-arrival-rate',
-
-      // common scenario configuration
-      exec: 'products',
-      startTime: '1s',
-      gracefulStop: '5s',
-      env: { EXAMPLEVAR: 'testing' },
-      tags: { example_tag: 'testing' },
-
-      // executor-specific configuration
-      duration: '15s',
-      rate: '1000',
-      preAllocatedVUs: 1000,
-      timeUnit: '1s'
-    }
-  }
+  scenarios: {}
 }
 
 if (__ENV.scenario) {
@@ -60,3 +59,10 @@ export function products() {
 
   http.get(url, params);
 }
+
+export function productDetails() {
+  var id = Math.floor(Math.random() * 1000012);
+  var url = `http://localhost:5000/products/${id}`;
+
+  http.get(url);
+};
