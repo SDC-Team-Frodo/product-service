@@ -21,6 +21,7 @@ COPY products(product_id, name, slogan, description, category, default_price)
 FROM '/Users/josephbalaoing/Hackreactor/SDC/product-service/db/csv/product.csv'
 DELIMITER ','
 CSV HEADER;
+CREATE INDEX ON products (product_id);
 
 CREATE TABLE styles(
   style_id SERIAL NOT NULL PRIMARY KEY,
@@ -37,6 +38,8 @@ FROM '/Users/josephbalaoing/Hackreactor/SDC/product-service/db/csv/styles.csv'
 DELIMITER ','
 NULL AS 'null'
 CSV HEADER;
+CREATE INDEX style_index ON styles (style_id);
+CREATE INDEX product_index ON styles (product_id);
 
 UPDATE styles
 SET sale_price=0
@@ -53,6 +56,7 @@ COPY related(related_id, product_id, related_product_id)
 FROM '/Users/josephbalaoing/Hackreactor/SDC/product-service/db/csv/related.csv'
 DELIMITER ','
 CSV HEADER;
+CREATE INDEX ON related (product_id);
 
 CREATE TABLE sku(
   sku_id SERIAL NOT NULL PRIMARY KEY,
@@ -66,6 +70,7 @@ COPY sku(sku_id, style_id, size, quantity)
 FROM '/Users/josephbalaoing/Hackreactor/SDC/product-service/db/csv/skus.csv'
 DELIMITER ','
 CSV HEADER;
+CREATE INDEX ON sku (style_id);
 
 CREATE TABLE photos(
   photo_id SERIAL NOT NULL PRIMARY KEY,
@@ -79,7 +84,7 @@ COPY photos(photo_id, style_id, url, thumbnail_url)
 FROM '/Users/josephbalaoing/Hackreactor/SDC/product-service/db/csv/photos.csv'
 DELIMITER ','
 CSV HEADER;
-
+CREATE INDEX ON photos (style_id);
 
 CREATE TABLE features(
   feature_id SERIAL NOT NULL PRIMARY KEY,
@@ -93,3 +98,4 @@ COPY features(feature_id, product_id, feature, value)
 FROM '/Users/josephbalaoing/Hackreactor/SDC/product-service/db/csv/features.csv'
 DELIMITER ','
 CSV HEADER;
+CREATE INDEX ON features (product_id);
