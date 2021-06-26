@@ -5,7 +5,6 @@ const Pool = require('pg').Pool;
 const dbconfig = require('../config.js').db;
 
 const pool = new Pool(dbconfig);
-pool.connect();
 
 describe('Product service endpoints', function() {
   describe('/products', function() {
@@ -39,18 +38,21 @@ describe('Product service endpoints', function() {
     });
 
     it('should get results with ids 31-40 results if page = 4, count = 10', function(done){
+      var page = 4;
+      var count = 10;
       axios({
         method: 'GET',
         url: 'http://localhost:5000/products',
         params: {
-          page: 4,
-          count: 10
+          page,
+          count
         }
       })
         .then(response => {
+          var start = page * count - count + 1;
           expect(response.data.length).to.equal(10);
           for (var i = 0; i < response.data.length; i++) {
-            expect(response.data[i].id).to.equal(i + 31);
+            expect(response.data[i].id).to.equal(i + start);
           }
           done();
         });
@@ -58,20 +60,22 @@ describe('Product service endpoints', function() {
   });
 
   describe('/products/:product_id', function() {
-    it('should respond with the correct product_id', function() {
-      for (var id = 1; id < 10; id++) {
-        axios({
-          method: 'GET',
-          url: `http://localhost:5000/products/${id}`,
-        })
+    it('should respond with the correct product_id', function(done) {
+      var id = 10;
+      axios({
+        method: 'GET',
+        url: `http://localhost:5000/products/${id}`,
+      })
         .then(response => {
           expect(response.data.id).to.equal(id);
           done();
+        })
+        .catch(err => {
+          console.log(err);
         });
-      }
     });
 
-    it('should get the corresponding features', function() {
+    it('should get the corresponding features', function(done) {
       var id = 5;
 
       var containsFeatures = (actual, expected) => {
@@ -98,29 +102,46 @@ describe('Product service endpoints', function() {
       })
         .then(response => {
           var featureQuery = `SELECT * FROM features WHERE product_id=${id}`;
-          pool.query(featureQuery)
-            .then(features => {
-              expect(containsFeatures(features, response.data.features)).to.be(true);
+          pool.connect()
+            .then(client => {
+              client.query(featureQuery)
+                .then(features => {
+                  expect(containsFeatures(features.rows, response.data.features)).to.be.true;
+                  client.release();
+                  done();
+                })
+                .catch(err => {
+                  client.release();
+                  console.log(err);
+                });
+            })
+            .catch(err => {
+              console.log(err);
             });
-          done();
+        })
+        .catch(err => {
+          console.log(err);
         });
     });
   });
 
   describe('/products/:product_id/styles', function() {
-    it('should respond with the correct product_id', function() {
+    it('should respond with the correct product_id', function(done) {
       var id = 10;
       axios({
         method: 'GET',
         url: `http://localhost:5000/products/${id}/styles`
       })
         .then(response => {
-          expect(response.data.product_id).to.equal(id);
+          expect(response.data.product_id).to.equal('' + id);
           done();
+        })
+        .catch(err => {
+          console.log(err);
         });
     });
 
-    it('should get the corresponding styles', function() {
+    it('should get the corresponding styles', function(done) {
       var id = 3;
       axios({
         method: 'GET',
@@ -129,15 +150,15 @@ describe('Product service endpoints', function() {
         .then(response => {
           var results = response.data.results;
           expect(results.length).to.equal(6);
-
-          for (var i = 0; i < results.length; i++) {
-            expect(results[i].style_id).to.equal(i + 11);
-          }
+          //Find way to test if the response has the corresponding styles
           done();
+        })
+        .catch(err => {
+          console.log(err);
         });
     });
 
-    it('should get the corresponding skus for each style', function() {
+    it('should get the corresponding skus for each style', function(done) {
       var id = 3;
       axios({
         method: 'GET',
@@ -146,22 +167,32 @@ describe('Product service endpoints', function() {
         .then(response => {
           response.data.results.forEach(style => {
             var style_id = style.style_id;
-            var expectedSkus = response.data.results[0].skus;
+            var expectedSkus = style.skus;
             var skuQuery = `SELECT * FROM sku WHERE style_id=${style_id}`;
-            pool.query(skuQuery)
-            .then(skus => {
-              skus.forEach(sku => {
-                expect(expectedSkus[sku.sku_id].quantity).to.equal(sku.quantity);
-                expect(expectedSkus[sku.sku_id].size).to.equal(sku.size);
+            pool.connect()
+              .then(client => {
+                client.query(skuQuery)
+                  .then(skus => {
+                    skus.rows.forEach(sku => {
+                      expect(expectedSkus[sku.sku_id].quantity).to.equal(sku.quantity);
+                      expect(expectedSkus[sku.sku_id].size).to.equal(sku.size);
+                    });
+                    client.release();
+                  })
+                  .catch(err => {
+                    client.release();
+                    console.log(err);
+                  });
               });
-              done();
-            });
-
           });
+          done();
+        })
+        .catch(err => {
+          console.log(err);
         });
     });
 
-    it('should get the corresponding photos for each style', function() {
+    it('should get the corresponding photos for each style', function(done) {
       var id = 3;
 
       var containsPhotos = (actual, expected) => {
@@ -189,20 +220,31 @@ describe('Product service endpoints', function() {
         .then(response => {
           response.data.results.forEach(style => {
             var style_id = style.style_id;
-            var expectedPhotos = response.data.results[0].photos;
+            var expectedPhotos = style.photos;
             var photoQuery = `SELECT * FROM photos WHERE style_id=${style_id}`;
-            pool.query(photoQuery)
-              .then(photos => {
-                expect(containsPhotos(photos, expectedPhotos)).to.be(true);
-                done();
+            pool.connect()
+              .then(client => {
+                client.query(photoQuery)
+                  .then(photos => {
+                    expect(containsPhotos(expectedPhotos, photos.rows)).to.be.true;
+                    client.release();
+                  })
+                  .catch(err => {
+                    client.release();
+                    console.log(err);
+                  });
               });
           });
+          done();
+        })
+        .catch(err => {
+          console.log(err);
         });
     });
   });
 
   describe('/products/:product_id/related', function() {
-    it('should get the related product ids', function() {
+    it('should get the related product ids', function(done) {
       var id = 3;
       axios({
         method: 'GET',
@@ -210,13 +252,24 @@ describe('Product service endpoints', function() {
       })
         .then(response => {
           var relatedQuery = `SELECT * FROM related WHERE product_id=${id}`;
-          pool.query(relatedQuery)
-            .then(relatedProducts => {
-              expect(relatedProducts.length).to.equal(response.data.length);
-              relatedProducts.forEach(related => {
-                expect(response.data.includes(related.related_product_id)).to.be(true);
-              });
-              done();
+          pool.connect()
+            .then(client => {
+              client.query(relatedQuery)
+                .then(relatedProducts => {
+                  expect(relatedProducts.rows.length).to.equal(response.data.length);
+                  relatedProducts.rows.forEach(related => {
+                    expect(response.data.includes(related.related_product_id)).to.be.true;
+                  });
+                  client.release();
+                  done();
+                })
+                .catch(err => {
+                  client.release();
+                  console.log(err);
+                });
+            })
+            .catch(err => {
+              console.log
             });
         });
     });
