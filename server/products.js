@@ -81,10 +81,7 @@ module.exports.getStyles = (req, res) => {
   }
   //Probably need optimizing
   var queries = [];
-  var styleQuery = `SELECT style_id, name, original_price, sale_price, default_style AS "default?"
-                    FROM styles
-                    WHERE
-                      product_id=${req.params.product_id}`;
+  var styleQuery = `SELECT style_id, name, original_price, sale_price, default_style AS "default?" FROM styles WHERE product_id=${req.params.product_id}`;
   pool.query(styleQuery)
     .then(response => {
       var queries = [];
