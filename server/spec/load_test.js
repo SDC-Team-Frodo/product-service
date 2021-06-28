@@ -22,8 +22,8 @@ export let options = {
   }
 }
 
-if (__ENV.scenario) {
-  options.scenarios.load.exec = __ENV.scenario;
+if (__ENV.exec) {
+  options.scenarios.load.exec = __ENV.exec;
   options.scenarios.load.rate = __ENV.rate;
 }
 
