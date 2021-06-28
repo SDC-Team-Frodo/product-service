@@ -9,7 +9,7 @@ export let options = {
       // common scenario configuration
       exec: 'products',
       startTime: '1s',
-      gracefulStop: '5s',
+      gracefulStop: '10s',
       env: { EXAMPLEVAR: 'testing' },
       tags: { example_tag: 'testing' },
 
@@ -50,6 +50,13 @@ export function productDetails() {
 export function styles() {
   var id = Math.floor(Math.random() * 1000012);
   var url = `http://localhost:5000/products/${id}/styles`;
+
+  http.get(url);
+};
+
+export function related() {
+  var id = Math.floor(Math.random() * 1000012);
+  var url = `http://localhost:5000/products/${id}/related`;
 
   http.get(url);
 };

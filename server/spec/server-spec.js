@@ -193,10 +193,11 @@ describe('Product service endpoints', function() {
     });
 
     it('should get the corresponding photos for each style', function(done) {
-      var id = 3;
+      var id = 900000;
 
       var containsPhotos = (actual, expected) => {
         if (actual.length !== expected.length) {
+          console.log('incorrect number of rows: ', actual.length, expected.length);
           return false;
         }
         for (var i = 0; i < actual.length; i++) {
