@@ -1,3 +1,6 @@
-db/csv
+csv
 node_modules
 config.js
+product-server.pem
+products-postgres.pem
+newrelic_agent.log

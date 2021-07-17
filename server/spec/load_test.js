@@ -29,7 +29,7 @@ if (__ENV.exec) {
 
 
 export function products() {
-  var url = 'http://localhost:5000/products';
+  var url = 'http://18.117.110.92:5000/products';
   var count = 200;
   var page = Math.floor(Math.random() * 5000);
   var params = {

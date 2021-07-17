@@ -4,6 +4,10 @@ const dbconfig = require('./config.js').db;
 
 const pool = new Pool(dbconfig);
 
+module.exports.getLoaderIO = (req, res) => {
+  res.end('loaderio-a449af48e5413b242b61f3925effefee');
+};
+
 module.exports.getProducts = (req, res) => {
   var page = req.query.page || 1;
   var count = req.query.count || 5;
@@ -118,56 +122,6 @@ module.exports.getStyles = (req, res) => {
     .catch(err => {
       console.log(err);
     });
-
-  //Probably need optimizing
-  // Multiple Queries
-  // var queries = [];
-  // var styleQuery = `SELECT style_id, name, original_price, sale_price, default_style AS "default?" FROM styles WHERE product_id=${req.params.product_id}`;
-  // pool.query(styleQuery)
-  //   .then(response => {
-  //     var queries = [];
-
-  //     styles.results = response.rows;
-  //     styles.results.forEach(style => {
-  //       var style_id = style.style_id;
-  //       var photoQuery = `SELECT thumbnail_url, url FROM photos WHERE style_id=${style_id}`;
-  //       var skuQuery = `SELECT sku_id, quantity, size FROM sku WHERE style_id=${style_id}`;
-  //       queries.push(pool.query(photoQuery)
-  //         .then(photos => {
-  //           style['photos'] = photos.rows;
-  //         })
-  //         .catch(err => {
-  //           console.log(err);
-  //           res.status(500);
-  //           res.end();
-  //           return;
-  //         })
-  //       );
-  //       queries.push(pool.query(skuQuery)
-  //         .then(skus => {
-  //           style.skus = {}
-  //           skus.rows.forEach(sku => {
-  //             style.skus[sku.sku_id] = {
-  //               quantity: sku.quantity,
-  //               size: sku.size
-  //             };
-  //           });
-  //         })
-  //         .catch(err => {
-  //           console.log(err);
-  //           res.status(500);
-  //           res.end();
-  //           return;
-  //         })
-  //       );
-  //     });
-
-  //     Promise.all(queries)
-  //       .then(() => {
-  //         res.end(JSON.stringify(styles));
-  //       });
-  //   });
-
 };
 
 module.exports.getRelated = (req, res) => {
